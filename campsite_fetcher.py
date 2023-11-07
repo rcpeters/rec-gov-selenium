@@ -7,6 +7,7 @@ from datetime import datetime, timedelta
 import pause
 #from selenium import webdriver
 from seleniumwire import webdriver
+from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.support import expected_conditions
@@ -35,11 +36,11 @@ now = datetime.now()
 rTimeStr = args.res_time.split(':')
 resDatetime = datetime.now().replace(hour=int(rTimeStr[0]),minute=int(rTimeStr[1]),second=int(rTimeStr[2]),microsecond=0)
 loginDatetime = resDatetime - timedelta(minutes=2)
-print(datetime.now())
-print(loginDatetime)
-print(resDatetime)
-pause.until(loginDatetime)
+print(f"current time {datetime.now()}")
+print(f"login time {loginDatetime}")
+print(f"reservation time {resDatetime}")
 
+pause.until(loginDatetime)
 
 def interceptor(request):  # A response interceptor takes two args
     if request.url.startswith('https://www.recreation.gov/api/camps/reservations/campgrounds/'):
@@ -84,11 +85,30 @@ class CampsiteFetcher():
     self.driver.get("https://www.recreation.gov/search")
     self.driver.set_window_size(1400, 800)
 
+    
+    WebDriverWait(self.driver, 10).until(
+        EC.element_to_be_clickable(self.driver.find_element(By.XPATH, "//button[contains(@aria-label, 'Log In')]"))
+    )
     self.driver.find_element(By.XPATH, "//button[contains(@aria-label, 'Log In')]").click()
-    self.driver.find_element(By.ID, "email").send_keys(args.username)
-    self.driver.find_element(By.ID, "rec-acct-sign-in-password").send_keys(args.password)
+    
+
+    WebDriverWait(self.driver, 10).until(
+        EC.element_to_be_clickable(self.driver.find_element(By.ID, "email"))
+    )
     self.driver.find_element(By.ID, "email").click()
+    self.driver.find_element(By.ID, "email").send_keys(args.username)
+    self.driver.find_element(By.ID, "rec-acct-sign-in-password").click()
+    self.driver.find_element(By.ID, "rec-acct-sign-in-password").send_keys(args.password)
+    
     self.driver.find_element(By.XPATH, "//button[@type='submit' and @aria-label='Log In']").click()
+    WebDriverWait(self.driver, 10).until(
+        EC.invisibility_of_element((By.XPATH, "//button[@type='submit' and @aria-label='Log In']"))
+    )
+
+
+    WebDriverWait(self.driver, 10).until(
+        EC.element_to_be_clickable((By.ID, "startDate"))
+    )
     self.driver.find_element(By.ID, "startDate").click()
     self.driver.find_element(By.ID, "startDate").clear()
     self.driver.find_element(By.ID, "startDate").send_keys(args.start_date)
@@ -100,12 +120,6 @@ class CampsiteFetcher():
     WebDriverWait(self.driver, 10).until(
         EC.invisibility_of_element((By.XPATH, "//div[contains(@data-component, 'Placeholder')]"))
     )
-
-
-    #self.driver.find_element(By.CSS_SELECTOR, ".nav-search-button").click()
-    #WebDriverWait(self.driver, 10).until(
-    #    EC.visibility_of_element_located((By.XPATH, "//div[@class='search-pagination-text']"))
-    #)
     
     campsites = args.camp_ids.split(",")
     handlesDict = {}
@@ -149,20 +163,11 @@ class CampsiteFetcher():
             print(campsite + " already reserved")
             self.driver.close()
         elif unavailableBtn:
-            print(campsite + " unavailable reserved")
+            print(campsite + " unavailable to reserve")
             self.driver.close()
         elif "orderdetails" in self.driver.current_url:
             print(campsite + " BOOKED!")
             self.driver.close()
-      
-#        continueBtn = self.driver.find_elements(By.XPATH, "//Button[contains(@class, 'sarsa-button') and contains(., 'Continue Shopping')]")
-#        if continueBtn:
-#          continueBtn[0].click()
-#          self.driver.close()
-
-        #bookingH1 = self.driver.find_elements(By.XPATH, "//h1[contains(@data-component, 'Heading') and contains(., 'Booking Reservation')]")
-        #if not bookingH1:
-        #    self.driver.refresh()
 
     self.driver.switch_to.window(self.driver.window_handles[0])
     self.driver.get("https://www.recreation.gov/cart")
@@ -171,5 +176,6 @@ tkc = CampsiteFetcher()
 tkc.setup(args)
 tkc.get_sites(args)
 
-# keep things going until I want it closed
+# keep python running until I hit enter
+print("press enter to end already reserved")
 input() 
