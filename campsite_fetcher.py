@@ -100,21 +100,21 @@ class CampsiteFetcher():
     self.driver.find_element(By.ID, "rec-acct-sign-in-password").click()
     self.driver.find_element(By.ID, "rec-acct-sign-in-password").send_keys(args.password)
     
-    self.driver.find_element(By.XPATH, "//button[@type='submit' and @aria-label='Log In']").click()
+    self.driver.find_element(By.XPATH, "//button[@type='submit']").click()
     WebDriverWait(self.driver, 10).until(
-        EC.invisibility_of_element((By.XPATH, "//button[@type='submit' and @aria-label='Log In']"))
+        EC.invisibility_of_element((By.XPATH, "//button[@type='submit']"))
     )
 
 
     WebDriverWait(self.driver, 10).until(
-        EC.element_to_be_clickable((By.ID, "startDate"))
+        EC.element_to_be_clickable((By.XPATH, "//div[contains(@aria-label, 'month, Start Date, ')]"))
     )
-    self.driver.find_element(By.ID, "startDate").click()
-    self.driver.find_element(By.ID, "startDate").clear()
-    self.driver.find_element(By.ID, "startDate").send_keys(args.start_date)
-    self.driver.find_element(By.ID, "endDate").click()
-    self.driver.find_element(By.ID, "endDate").clear()
-    self.driver.find_element(By.ID, "endDate").send_keys(args.end_date)
+    self.driver.find_element(By.XPATH, "//div[contains(@aria-label, 'month, Start Date, ')]").click()
+    self.driver.find_element(By.XPATH, "//div[contains(@aria-label, 'month, Start Date, ')]").clear()
+    self.driver.find_element(By.XPATH, "//div[contains(@aria-label, 'month, Start Date, ')]").send_keys(args.start_date)
+    self.driver.find_element(By.XPATH, "//div[contains(@aria-label, 'month, End Date, ')]").click()
+    self.driver.find_element(By.XPATH, "//div[contains(@aria-label, 'month, End Date, ')]").clear()
+    self.driver.find_element(By.XPATH, "//div[contains(@aria-label, 'month, End Date, ')]").send_keys(args.end_date)
 
     #<div class="rec-flex-card-image-wrap"><div data-component="Placeholder" style="height: 100px;"></div></div>
     WebDriverWait(self.driver, 10).until(
